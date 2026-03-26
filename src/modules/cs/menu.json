@@ -1,0 +1,27 @@
+[
+    {
+        "name": "客服模块",
+        "router": null,
+        "perms": null,
+        "type": 0,
+        "icon": null,
+        "orderNum": 0,
+        "viewPath": null,
+        "keepAlive": true,
+        "isShow": false,
+        "childMenus": [
+            {
+                "name": "通用",
+                "router": null,
+                "perms": "cs:session:page,cs:session:update,cs:session:info,cs:session:list,cs:session:add,cs:msg:unreadCount,cs:msg:page,cs:msg:update,cs:msg:info,cs:msg:list,cs:msg:add",
+                "type": 2,
+                "icon": null,
+                "orderNum": 0,
+                "viewPath": null,
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": []
+            }
+        ]
+    }
+]
