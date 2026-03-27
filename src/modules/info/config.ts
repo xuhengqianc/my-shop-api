@@ -2,6 +2,7 @@ import { ModuleConfig } from '@cool-midway/core';
 
 /**
  * 模块配置
+ * 信息模块 - 已禁用（教育平台暂不需要轮播图）
  */
 export default () => {
   return {
@@ -15,5 +16,7 @@ export default () => {
     globalMiddlewares: [],
     // 模块加载顺序，默认为0，值越大越优先加载
     order: 0,
+    // 禁用模块
+    enable: false,
   } as ModuleConfig;
 };
