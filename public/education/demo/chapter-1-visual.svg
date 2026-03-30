@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480" fill="none">
+  <rect width="720" height="480" rx="32" fill="#FFF8DA"/>
+  <rect x="84" y="104" width="178" height="178" rx="28" fill="#7BDCB5"/>
+  <rect x="300" y="104" width="178" height="178" rx="28" fill="#FFD166"/>
+  <rect x="516" y="104" width="120" height="178" rx="28" fill="#8BD3DD"/>
+  <text x="110" y="360" fill="#2C4A73" font-size="34" font-family="Arial, sans-serif" font-weight="700">3 + 2 = 5</text>
+  <text x="110" y="404" fill="#486B95" font-size="24" font-family="Arial, sans-serif">把数量分组，再重新合并</text>
+</svg>

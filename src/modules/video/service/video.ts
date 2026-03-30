@@ -1,13 +1,10 @@
-import { BaseService } from '@cool-midway/core';
+import { BaseService, CoolCommException } from '@cool-midway/core';
 import { Provide } from '@midwayjs/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository } from 'typeorm';
 import { EduVideoEntity } from '../entity/video';
 import { EduVideoMarkerEntity } from '../entity/marker';
 
-/**
- * 视频服务
- */
 @Provide()
 export class VideoService extends BaseService {
   @InjectEntityModel(EduVideoEntity)
@@ -16,25 +13,35 @@ export class VideoService extends BaseService {
   @InjectEntityModel(EduVideoMarkerEntity)
   eduVideoMarkerEntity: Repository<EduVideoMarkerEntity>;
 
-  /**
-   * 根据章节ID获取视频
-   */
+  async list(chapterId?: number) {
+    const where: any = {};
+    if (chapterId) {
+      where.chapterId = chapterId;
+    }
+    const list = await this.eduVideoEntity.find({
+      where,
+      order: {
+        chapterId: 'ASC',
+        createTime: 'DESC',
+      },
+    });
+
+    return await Promise.all(list.map(item => this.info(item.id)));
+  }
+
   async getByChapterId(chapterId: number) {
     return await this.eduVideoEntity.findOne({
       where: { chapterId, status: 1 },
+      order: { createTime: 'DESC' },
     });
   }
 
-  /**
-   * 获取视频详情（包含时间标记）
-   */
   async info(id: number) {
     const video = await this.eduVideoEntity.findOne({ where: { id } });
     if (!video) {
       return null;
     }
 
-    // 获取时间标记
     const markers = await this.eduVideoMarkerEntity.find({
       where: { videoId: id },
       order: { sort: 'ASC', time: 'ASC' },
@@ -46,74 +53,50 @@ export class VideoService extends BaseService {
     };
   }
 
-  /**
-   * 添加视频
-   */
   async add(param: any) {
+    await this.ensureSingleChapterVideo(param.chapterId);
+
     const { markers, ...videoData } = param;
+    const savedVideo = await this.eduVideoEntity.save({
+      ...videoData,
+      status: videoData.status ?? 1,
+    });
 
-    // 保存视频
-    const video = new EduVideoEntity();
-    Object.assign(video, videoData);
-    const savedVideo = await this.eduVideoEntity.save(video);
-
-    // 保存时间标记
-    if (markers && markers.length > 0) {
-      await this.saveMarkers(savedVideo.id, markers);
-    }
-
+    await this.replaceMarkers(savedVideo.id, markers);
     return savedVideo;
   }
 
-  /**
-   * 更新视频
-   */
   async update(param: any) {
     const { id, markers, ...videoData } = param;
+    const current = await this.eduVideoEntity.findOne({ where: { id } });
+    if (!current) {
+      throw new CoolCommException('视频不存在');
+    }
 
-    // 更新视频
+    if (
+      Number(videoData.chapterId || current.chapterId) !== Number(current.chapterId)
+    ) {
+      await this.ensureSingleChapterVideo(videoData.chapterId, id);
+    }
+
     await this.eduVideoEntity.update(id, videoData);
-
-    // 更新时间标记
     if (markers !== undefined) {
-      // 删除旧标记
-      await this.eduVideoMarkerEntity.delete({ videoId: id });
-      // 保存新标记
-      if (markers.length > 0) {
-        await this.saveMarkers(id, markers);
-      }
+      await this.replaceMarkers(id, markers);
     }
   }
 
-  /**
-   * 删除视频
-   */
   async delete(ids: number[]) {
-    // 删除时间标记
-    await this.eduVideoMarkerEntity.delete({ videoId: ids as any });
-    // 删除视频
+    if (!ids?.length) {
+      return;
+    }
+    await this.eduVideoMarkerEntity
+      .createQueryBuilder()
+      .delete()
+      .where('videoId in (:...ids)', { ids })
+      .execute();
     await this.eduVideoEntity.delete(ids);
   }
 
-  /**
-   * 保存时间标记
-   */
-  private async saveMarkers(videoId: number, markers: any[]) {
-    const markerEntities = markers.map((marker, index) => {
-      const entity = new EduVideoMarkerEntity();
-      entity.videoId = videoId;
-      entity.title = marker.title;
-      entity.time = marker.time;
-      entity.sort = marker.sort !== undefined ? marker.sort : index;
-      return entity;
-    });
-
-    await this.eduVideoMarkerEntity.save(markerEntities);
-  }
-
-  /**
-   * 获取章节的视频（APP端）
-   */
   async getChapterVideo(chapterId: number) {
     const video = await this.getByChapterId(chapterId);
     if (!video) {
@@ -121,5 +104,55 @@ export class VideoService extends BaseService {
     }
 
     return await this.info(video.id);
+  }
+
+  private async replaceMarkers(videoId: number, markers: any) {
+    await this.eduVideoMarkerEntity.delete({ videoId });
+    const normalizedMarkers = this.normalizeMarkers(markers);
+    if (!normalizedMarkers.length) {
+      return;
+    }
+
+    await this.eduVideoMarkerEntity.save(
+      normalizedMarkers.map((marker, index) => ({
+        videoId,
+        title: marker.title,
+        time: marker.time,
+        sort: marker.sort ?? index,
+      }))
+    );
+  }
+
+  private normalizeMarkers(markers: any) {
+    if (!markers) {
+      return [];
+    }
+    if (typeof markers === 'string') {
+      try {
+        markers = JSON.parse(markers);
+      } catch (error) {
+        return [];
+      }
+    }
+    if (!Array.isArray(markers)) {
+      return [];
+    }
+
+    return markers
+      .map((marker, index) => ({
+        title: String(marker?.title || `片段${index + 1}`).trim(),
+        time: Number(marker?.time || 0),
+        sort: Number(marker?.sort ?? index),
+      }))
+      .filter(marker => marker.title);
+  }
+
+  private async ensureSingleChapterVideo(chapterId: number, currentId?: number) {
+    const exists = await this.eduVideoEntity.findOne({
+      where: { chapterId },
+    });
+    if (exists && Number(exists.id) !== Number(currentId || 0)) {
+      throw new CoolCommException('一个章节只能配置一个微课视频');
+    }
   }
 }

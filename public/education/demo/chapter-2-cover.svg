@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" fill="none">
+  <rect width="960" height="540" rx="36" fill="#EEF8FF"/>
+  <circle cx="128" cy="118" r="54" fill="#FFCC8A"/>
+  <circle cx="832" cy="426" r="72" fill="#94E2D5"/>
+  <rect x="136" y="124" width="688" height="278" rx="34" fill="#FFFFFF"/>
+  <path d="M226 236C226 193.49 260.49 159 303 159H658C700.51 159 735 193.49 735 236C735 278.51 700.51 313 658 313H303C260.49 313 226 278.51 226 236Z" fill="#D7E8FF"/>
+  <path d="M480 159C556.77 159 619 193.49 619 236C619 278.51 556.77 313 480 313V159Z" fill="#7BDCB5"/>
+  <rect x="238" y="344" width="208" height="20" rx="10" fill="#E7F1FF"/>
+  <rect x="458" y="344" width="112" height="20" rx="10" fill="#FFE29A"/>
+  <text x="208" y="102" fill="#234266" font-size="42" font-family="Arial, sans-serif" font-weight="700">第 2 章 分数与比较</text>
+  <text x="208" y="438" fill="#486B95" font-size="28" font-family="Arial, sans-serif">借助切分图和分段动画，理解“几分之几”</text>
+</svg>

@@ -175,12 +175,26 @@ export class PluginService extends BaseService {
   ): Promise<K extends keyof PluginMap ? PluginMap[K] : any> {
     const check = await this.checkStatus(key);
     if (!check) throw new CoolCommException(`插件[${key}]不存在或已禁用`);
+    const hookKey = String(key);
+    if (
+      Object.keys(this.hooksConfig || {}).includes(hookKey) &&
+      !this.pluginCenterService.pluginInfos.get(hookKey)
+    ) {
+      await this.pluginCenterService.initHooks();
+    }
+
     let instance;
-    const pluginInfo = this.pluginCenterService.pluginInfos.get(key);
+    const pluginInfo = this.pluginCenterService.pluginInfos.get(hookKey);
+    const pluginClass = this.pluginCenterService.plugins.get(hookKey);
+
+    if (!pluginInfo || !pluginClass) {
+      throw new CoolCommException(`插件[${key}]初始化失败`);
+    }
+
     if (pluginInfo.singleton) {
-      instance = this.pluginCenterService.plugins.get(key);
+      instance = pluginClass;
     } else {
-      instance = new (await this.pluginCenterService.plugins.get(key))();
+      instance = new pluginClass();
       await instance.init(pluginInfo, this.ctx, this.app, {
         cache: this.midwayCache,
         pluginService: this,

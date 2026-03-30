@@ -10,6 +10,10 @@ export class UserInfoEntity extends BaseEntity {
   @Column({ comment: '登录唯一ID', nullable: true })
   unionid: string;
 
+  @Index({ unique: true })
+  @Column({ comment: '邮箱', nullable: true })
+  email: string;
+
   @Column({ comment: '头像', nullable: true })
   avatarUrl: string;
 
@@ -26,11 +30,20 @@ export class UserInfoEntity extends BaseEntity {
   @Column({ comment: '状态', dict: ['禁用', '正常', '已注销'], default: 1 })
   status: number;
 
-  @Column({ comment: '登录方式', dict: ['小程序', '公众号', 'H5'], default: 0 })
+  @Column({ comment: '登录方式', dict: ['小程序', '公众号', 'H5', '邮箱'], default: 0 })
   loginType: number;
 
   @Column({ comment: '密码', nullable: true })
   password: string;
+
+  @Column({ comment: '邮箱是否已验证 0-未验证 1-已验证', default: 0 })
+  emailVerified: number;
+
+  @Column({ comment: '是否为演示账号 0-否 1-是', default: 0 })
+  isDemo: number;
+
+  @Column({ comment: '是否解锁全部章节 0-否 1-是', default: 0 })
+  allUnlocked: number;
 
   @Column({ comment: '介绍', type: 'text', nullable: true })
   description: string;

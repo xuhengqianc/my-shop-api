@@ -22,6 +22,15 @@ export class EduChapterEntity extends BaseEntity {
   @Column({ comment: '缩略图类型 1-图片 2-视频', type: 'tinyint', default: 1 })
   thumbnailType: number;
 
+  @Column({ comment: '章节可视化内容', type: 'json', nullable: true })
+  visuals: {
+    title: string;
+    url: string;
+    type: number;
+    cover?: string;
+    description?: string;
+  }[];
+
   @Index()
   @Column({ comment: '状态 0-禁用 1-启用', type: 'tinyint', default: 1 })
   status: number;

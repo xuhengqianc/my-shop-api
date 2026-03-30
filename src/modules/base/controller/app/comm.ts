@@ -1,4 +1,13 @@
-import { Provide, Inject, Get, Post, Query, Config } from '@midwayjs/core';
+import {
+  Provide,
+  Inject,
+  Get,
+  Post,
+  Query,
+  Config,
+  Fields,
+  Files,
+} from '@midwayjs/core';
 import {
   CoolController,
   BaseController,
@@ -56,9 +65,9 @@ export class BaseAppCommController extends BaseController {
    * 文件上传
    */
   @Post('/upload', { summary: '文件上传' })
-  async upload() {
+  async upload(@Files() files, @Fields() fields) {
     const file = await this.pluginService.getInstance('upload');
-    return this.ok(await file.upload(this.ctx));
+    return this.ok(await file.upload({ files, fields, ctx: this.ctx }));
   }
 
   /**

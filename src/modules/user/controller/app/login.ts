@@ -96,11 +96,52 @@ export class AppUserLoginController extends BaseController {
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/sendEmailCode', { summary: '发送邮箱验证码' })
+  async sendEmailCode(
+    @Body('email') email: string,
+    @Body('scene') scene: 'register' | 'login' | 'reset'
+  ) {
+    return this.ok(await this.userLoginService.sendEmailCode(email, scene));
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/registerByEmail', { summary: '邮箱注册' })
+  async registerByEmail(@Body() body) {
+    return this.ok(await this.userLoginService.registerByEmail(body));
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/emailPassword', { summary: '邮箱密码登录' })
+  async emailPassword(
+    @Body('email') email: string,
+    @Body('password') password: string
+  ) {
+    return this.ok(await this.userLoginService.emailPassword(email, password));
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/emailCode', { summary: '邮箱验证码登录' })
+  async emailCode(
+    @Body('email') email: string,
+    @Body('code') code: string
+  ) {
+    return this.ok(await this.userLoginService.emailCodeLogin(email, code));
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Post('/resetPasswordByEmail', { summary: '邮箱找回密码' })
+  async resetPasswordByEmail(@Body() body) {
+    await this.userLoginService.resetPasswordByEmail(body);
+    return this.ok();
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
   @Post('/password', { summary: '密码登录' })
   async password(
     @Body('phone') phone: string,
+    @Body('account') account: string,
     @Body('password') password: string
   ) {
-    return this.ok(await this.userLoginService.password(phone, password));
+    return this.ok(await this.userLoginService.password(account || phone, password));
   }
 }

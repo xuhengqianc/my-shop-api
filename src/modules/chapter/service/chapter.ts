@@ -1,83 +1,175 @@
-import { BaseService } from '@cool-midway/core';
-import { Provide } from '@midwayjs/core';
+import { BaseService, CoolCommException } from '@cool-midway/core';
+import { Inject, Provide } from '@midwayjs/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository } from 'typeorm';
 import { EduChapterEntity } from '../entity/chapter';
+import { ProgressService } from '../../progress/service/progress';
+import { VideoService } from '../../video/service/video';
+import { CoursewareService } from '../../courseware/service/courseware';
+import { ExamService } from '../../exam/service/exam';
 
-/**
- * 章节服务
- */
 @Provide()
 export class ChapterService extends BaseService {
   @InjectEntityModel(EduChapterEntity)
   eduChapterEntity: Repository<EduChapterEntity>;
 
-  /**
-   * 获取章节列表（按排序）
-   */
+  @Inject()
+  progressService: ProgressService;
+
+  @Inject()
+  videoService: VideoService;
+
+  @Inject()
+  coursewareService: CoursewareService;
+
+  @Inject()
+  examService: ExamService;
+
   async list(status?: number) {
     const query = this.eduChapterEntity
       .createQueryBuilder('chapter')
       .orderBy('chapter.sort', 'ASC')
-      .addOrderBy('chapter.createTime', 'DESC');
+      .addOrderBy('chapter.createTime', 'ASC');
 
     if (status !== undefined) {
       query.where('chapter.status = :status', { status });
     }
 
-    return await query.getMany();
+    const list = await query.getMany();
+    return list.map(item => this.normalizeChapter(item));
   }
 
-  /**
-   * 获取章节详情
-   */
   async info(id: number) {
-    return await this.eduChapterEntity.findOne({ where: { id } });
+    const chapter = await this.eduChapterEntity.findOne({ where: { id } });
+    return chapter ? this.normalizeChapter(chapter) : null;
   }
 
-  /**
-   * 添加章节
-   */
   async add(param: any) {
     const chapter = new EduChapterEntity();
-    Object.assign(chapter, param);
+    Object.assign(chapter, {
+      ...param,
+      visuals: this.normalizeVisuals(param.visuals),
+    });
     return await this.eduChapterEntity.save(chapter);
   }
 
-  /**
-   * 更新章节
-   */
   async update(param: any) {
-    await this.eduChapterEntity.update(param.id, param);
+    await this.eduChapterEntity.update(param.id, {
+      ...param,
+      visuals: this.normalizeVisuals(param.visuals),
+    });
   }
 
-  /**
-   * 删除章节
-   */
   async delete(ids: number[]) {
     await this.eduChapterEntity.delete(ids);
   }
 
-  /**
-   * 更新排序
-   */
   async updateSort(id: number, sort: number) {
     await this.eduChapterEntity.update(id, { sort });
   }
 
-  /**
-   * 更新状态
-   */
   async updateStatus(id: number, status: number) {
     await this.eduChapterEntity.update(id, { status });
   }
 
-  /**
-   * 获取用户可访问的章节列表（考虑解锁逻辑）
-   */
   async getUserChapterList(userId: number) {
-    // TODO: 后续集成学习进度模块，实现章节解锁逻辑
-    // 目前返回所有启用的章节
-    return await this.list(1);
+    const chapters = await this.list(1);
+    const progressMap = await this.progressService.getProgressMap(
+      userId,
+      chapters.map(item => Number(item.id))
+    );
+    const unlockedChapterIds = await this.progressService.getUnlockedChapterIds(
+      userId,
+      chapters
+    );
+
+    const firstUnlockedNotCompleted = chapters.find(item => {
+      const progress = progressMap.get(Number(item.id));
+      return unlockedChapterIds.includes(Number(item.id)) && progress?.completed !== 1;
+    });
+
+    return await Promise.all(
+      chapters.map(async chapter => {
+        const progress = progressMap.get(Number(chapter.id));
+        const questionCount = await this.examService.getChapterQuestionCount(
+          Number(chapter.id)
+        );
+        const video = await this.videoService.getByChapterId(Number(chapter.id));
+        const courseware = await this.coursewareService.getByChapterId(
+          Number(chapter.id)
+        );
+
+        return {
+          ...chapter,
+          unlocked: unlockedChapterIds.includes(Number(chapter.id)),
+          current: Number(firstUnlockedNotCompleted?.id) === Number(chapter.id),
+          progress: progress || null,
+          stats: {
+            hasVideo: Boolean(video),
+            hasCourseware: Boolean(courseware),
+            examQuestionCount: questionCount,
+          },
+        };
+      })
+    );
+  }
+
+  async getUserChapterInfo(userId: number, chapterId: number) {
+    const chapter = await this.info(chapterId);
+    if (!chapter || chapter.status !== 1) {
+      throw new CoolCommException('章节不存在');
+    }
+
+    await this.progressService.ensureChapterUnlocked(userId, chapterId);
+
+    const progress = await this.progressService.getUserProgress(userId, chapterId);
+    const video = await this.videoService.getChapterVideo(chapterId);
+    const courseware = await this.coursewareService.getByChapterId(chapterId);
+    const exam = await this.examService.getChapterExamOverview(userId, chapterId);
+
+    return {
+      ...chapter,
+      progress,
+      video,
+      courseware,
+      exam,
+    };
+  }
+
+  private normalizeChapter(chapter: EduChapterEntity) {
+    return {
+      ...chapter,
+      visuals: this.normalizeVisuals(chapter.visuals),
+    };
+  }
+
+  private normalizeVisuals(visuals: any) {
+    if (!visuals) {
+      return [];
+    }
+
+    if (typeof visuals === 'string') {
+      try {
+        visuals = JSON.parse(visuals);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    if (!Array.isArray(visuals)) {
+      return [];
+    }
+
+    return visuals
+      .map((item, index) => ({
+        title: String(item?.title || `可视化内容${index + 1}`).trim(),
+        url: String(item?.url || '').trim(),
+        type: Number(item?.type || 1),
+        cover: item?.cover ? String(item.cover).trim() : '',
+        description: item?.description
+          ? String(item.description).trim()
+          : '',
+      }))
+      .filter(item => item.url);
   }
 }

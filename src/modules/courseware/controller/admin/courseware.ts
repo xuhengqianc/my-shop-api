@@ -11,8 +11,14 @@ export class AdminCoursewareController extends BaseController {
   @Inject()
   coursewareService: CoursewareService;
 
+  @Post('/list')
+  async getList(@Body() body: any) {
+    const { chapterId } = body || {};
+    return this.ok(await this.coursewareService.list(chapterId));
+  }
+
   @Post('/info')
-  async info(@Body() body: any) {
+  async getInfo(@Body() body: any) {
     const { id } = body;
     return this.ok(await this.coursewareService.info(id));
   }
@@ -24,19 +30,19 @@ export class AdminCoursewareController extends BaseController {
   }
 
   @Post('/add')
-  async add(@Body() body: any) {
+  async create(@Body() body: any) {
     await this.coursewareService.add(body);
     return this.ok();
   }
 
   @Post('/update')
-  async update(@Body() body: any) {
+  async modify(@Body() body: any) {
     await this.coursewareService.update(body);
     return this.ok();
   }
 
   @Post('/delete')
-  async delete(@Body() body: any) {
+  async remove(@Body() body: any) {
     const { ids } = body;
     await this.coursewareService.delete(ids);
     return this.ok();

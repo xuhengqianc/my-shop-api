@@ -35,6 +35,12 @@ export class UserMiddleware implements IMiddleware<Context, NextFunction> {
 
   resolve() {
     return async (ctx: Context, next: NextFunction) => {
+      const rawUrl = ctx.path.split('?')[0];
+      if (_.startsWith(rawUrl, '/app/user/login/')) {
+        await next();
+        return;
+      }
+
       let { url } = ctx;
       url = url.replace(this.prefix, '').split('?')[0];
       if (_.startsWith(url, '/app/')) {

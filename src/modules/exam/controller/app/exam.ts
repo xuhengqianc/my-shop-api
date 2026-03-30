@@ -11,24 +11,20 @@ export class AppExamController extends BaseController {
   @Inject()
   examService: ExamService;
 
+  @Inject()
+  ctx;
+
   /**
    * 获取章节测试题目
    */
   @Post('/getChapterQuestions')
   async getChapterQuestions(@Body() body: any) {
     const { chapterId } = body;
-    const questions = await this.examService.getChapterExamQuestions(chapterId);
-
-    // 不返回答案给前端
     return this.ok(
-      questions.map(q => ({
-        id: q.id,
-        type: q.type,
-        title: q.title,
-        content: q.content,
-        options: q.options,
-        difficulty: q.difficulty,
-      }))
+      await this.examService.getChapterQuestionsForUser(
+        this.ctx.user.id,
+        chapterId
+      )
     );
   }
 
@@ -37,12 +33,10 @@ export class AppExamController extends BaseController {
    */
   @Post('/submitAnswer')
   async submitAnswer(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
     const { chapterId, questionId, userAnswer } = body;
 
     const result = await this.examService.submitAnswer(
-      userId,
+      this.ctx.user.id,
       chapterId,
       questionId,
       userAnswer
@@ -51,16 +45,28 @@ export class AppExamController extends BaseController {
     return this.ok(result);
   }
 
+  @Post('/submitChapter')
+  async submitChapter(@Body() body: any) {
+    const { chapterId, answers } = body;
+    return this.ok(
+      await this.examService.submitChapterAnswers(
+        this.ctx.user.id,
+        chapterId,
+        answers || []
+      )
+    );
+  }
+
   /**
    * 获取章节答题记录
    */
   @Post('/getChapterRecords')
   async getChapterRecords(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
     const { chapterId } = body;
 
-    return this.ok(await this.examService.getChapterAnswerRecords(userId, chapterId));
+    return this.ok(
+      await this.examService.getChapterExamOverview(this.ctx.user.id, chapterId)
+    );
   }
 
   /**
@@ -68,11 +74,13 @@ export class AppExamController extends BaseController {
    */
   @Post('/aiHelp')
   async aiHelp(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
     const { chapterId, questionId } = body;
 
-    await this.examService.incrementAiHelpCount(userId, chapterId, questionId);
+    await this.examService.incrementAiHelpCount(
+      this.ctx.user.id,
+      chapterId,
+      questionId
+    );
     return this.ok();
   }
 }

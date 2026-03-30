@@ -5,7 +5,16 @@ import {
   CoolUrlTag,
   TagTypes,
 } from '@cool-midway/core';
-import { ALL, Body, Get, Inject, Post, Provide } from '@midwayjs/core';
+import {
+  ALL,
+  Body,
+  Fields,
+  Files,
+  Get,
+  Inject,
+  Post,
+  Provide,
+} from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { PluginService } from '../../../plugin/service/info';
 import { BaseSysUserEntity } from '../../entity/sys/user';
@@ -68,9 +77,9 @@ export class BaseCommController extends BaseController {
    * 文件上传
    */
   @Post('/upload', { summary: '文件上传' })
-  async upload() {
+  async upload(@Files() files, @Fields() fields) {
     const file = await this.pluginService.getInstance('upload');
-    return this.ok(await file.upload(this.ctx));
+    return this.ok(await file.upload({ files, fields, ctx: this.ctx }));
   }
 
   /**

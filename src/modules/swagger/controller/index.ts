@@ -22,7 +22,7 @@ export class SwaggerIndexController extends BaseController {
     if (!this.epsConfig) {
       return this.fail('Eps未开启');
     }
-    await this.ctx.render('swagger', {});
+    this.ctx.redirect('/swagger/index.html');
   }
 
   @Get('/json', { summary: '获得Swagger JSON数据' })

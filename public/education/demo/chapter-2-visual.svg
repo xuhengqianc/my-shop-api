@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480" fill="none">
+  <rect width="720" height="480" rx="32" fill="#EEF8FF"/>
+  <circle cx="220" cy="220" r="128" fill="#FFFFFF"/>
+  <path d="M220 220L220 92A128 128 0 0 1 347.28 220H220Z" fill="#7BDCB5"/>
+  <path d="M220 220L347.28 220A128 128 0 0 1 220 348V220Z" fill="#FFD166"/>
+  <path d="M220 220L220 348A128 128 0 0 1 92.72 220H220Z" fill="#FFADAD"/>
+  <path d="M220 220L92.72 220A128 128 0 0 1 220 92V220Z" fill="#8BD3DD"/>
+  <text x="406" y="208" fill="#234266" font-size="44" font-family="Arial, sans-serif" font-weight="700">1/4 与 2/4</text>
+  <text x="406" y="260" fill="#5E7C9A" font-size="26" font-family="Arial, sans-serif">先看“平均分成几份”</text>
+  <text x="406" y="300" fill="#5E7C9A" font-size="26" font-family="Arial, sans-serif">再看“拿到了其中几份”</text>
+</svg>

@@ -11,14 +11,15 @@ export class AppProgressController extends BaseController {
   @Inject()
   progressService: ProgressService;
 
+  @Inject()
+  ctx;
+
   /**
    * 获取我的进度
    */
   @Post('/getMyProgress')
   async getMyProgress() {
-    // TODO: 从token获取userId
-    const userId = 1;
-    return this.ok(await this.progressService.getUserAllProgress(userId));
+    return this.ok(await this.progressService.getUserAllProgress(this.ctx.user.id));
   }
 
   /**
@@ -26,10 +27,10 @@ export class AppProgressController extends BaseController {
    */
   @Post('/getChapterProgress')
   async getChapterProgress(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
     const { chapterId } = body;
-    return this.ok(await this.progressService.getUserProgress(userId, chapterId));
+    return this.ok(
+      await this.progressService.getChapterStatus(this.ctx.user.id, chapterId)
+    );
   }
 
   /**
@@ -37,10 +38,12 @@ export class AppProgressController extends BaseController {
    */
   @Post('/updateVideoProgress')
   async updateVideoProgress(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
     const { chapterId, progress } = body;
-    await this.progressService.updateVideoProgress(userId, chapterId, progress);
+    await this.progressService.updateVideoProgress(
+      this.ctx.user.id,
+      chapterId,
+      progress
+    );
     return this.ok();
   }
 
@@ -49,10 +52,8 @@ export class AppProgressController extends BaseController {
    */
   @Post('/markVideoCompleted')
   async markVideoCompleted(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
     const { chapterId } = body;
-    await this.progressService.markVideoCompleted(userId, chapterId);
+    await this.progressService.markVideoCompleted(this.ctx.user.id, chapterId);
     return this.ok();
   }
 
@@ -61,10 +62,8 @@ export class AppProgressController extends BaseController {
    */
   @Post('/markExamCompleted')
   async markExamCompleted(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
     const { chapterId, score } = body;
-    await this.progressService.markExamCompleted(userId, chapterId, score);
+    await this.progressService.markExamCompleted(this.ctx.user.id, chapterId, score);
     return this.ok();
   }
 
@@ -73,10 +72,11 @@ export class AppProgressController extends BaseController {
    */
   @Post('/isChapterUnlocked')
   async isChapterUnlocked(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
     const { chapterId } = body;
-    const unlocked = await this.progressService.isChapterUnlocked(userId, chapterId);
+    const unlocked = await this.progressService.isChapterUnlocked(
+      this.ctx.user.id,
+      chapterId
+    );
     return this.ok({ unlocked });
   }
 }

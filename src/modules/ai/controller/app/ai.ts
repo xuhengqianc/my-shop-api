@@ -11,16 +11,23 @@ export class AppAiController extends BaseController {
   @Inject()
   aiService: AiService;
 
+  @Inject()
+  ctx;
+
   /**
    * 文本对话
    */
   @Post('/chat')
   async chat(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
-    const { message, type, questionId } = body;
+    const { message, type, questionId, chapterId } = body;
 
-    const response = await this.aiService.chat(userId, message, type, questionId);
+    const response = await this.aiService.chat(
+      this.ctx.user.id,
+      message,
+      type,
+      questionId,
+      chapterId
+    );
     return this.ok({ response });
   }
 
@@ -29,12 +36,17 @@ export class AppAiController extends BaseController {
    */
   @Post('/chatWithImage')
   async chatWithImage(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
-    const { imageUrl, type } = body;
+    const { imageUrl, type, chapterId, questionId } = body;
 
-    const response = await this.aiService.chatWithImage(userId, imageUrl, type);
-    return this.ok({ response });
+    return this.ok(
+      await this.aiService.chatWithImage(
+        this.ctx.user.id,
+        imageUrl,
+        type,
+        chapterId,
+        questionId
+      )
+    );
   }
 
   /**
@@ -42,22 +54,29 @@ export class AppAiController extends BaseController {
    */
   @Post('/getHistory')
   async getHistory(@Body() body: any) {
-    // TODO: 从token获取userId
-    const userId = 1;
-    const { limit } = body;
+    const { limit, chapterId, questionId } = body;
 
-    return this.ok(await this.aiService.getConversationHistory(userId, limit || 10));
+    return this.ok(
+      await this.aiService.getConversationHistory(
+        this.ctx.user.id,
+        limit || 10,
+        chapterId,
+        questionId
+      )
+    );
   }
 
   /**
    * 清空对话历史
    */
   @Post('/clearHistory')
-  async clearHistory() {
-    // TODO: 从token获取userId
-    const userId = 1;
-
-    await this.aiService.clearConversationHistory(userId);
+  async clearHistory(@Body() body: any) {
+    const { chapterId, questionId } = body || {};
+    await this.aiService.clearConversationHistory(
+      this.ctx.user.id,
+      chapterId,
+      questionId
+    );
     return this.ok();
   }
 }

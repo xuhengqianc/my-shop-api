@@ -38,7 +38,7 @@ export class PluginAppEvent {
   @Event('onServerReady')
   async onServerReady() {
     await this.midwayCache.set(PLUGIN_CACHE_KEY, []);
-    this.pluginCenterService.init();
+    await this.pluginCenterService.init();
     // this.pluginTypesService.reGenerate();
   }
 }

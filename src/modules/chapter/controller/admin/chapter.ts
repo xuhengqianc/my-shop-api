@@ -15,7 +15,7 @@ export class AdminChapterController extends BaseController {
    * 获取章节列表
    */
   @Post('/list')
-  async list(@Body() body: any) {
+  async getList(@Body() body: any) {
     const { status } = body;
     return this.ok(await this.chapterService.list(status));
   }
@@ -24,7 +24,7 @@ export class AdminChapterController extends BaseController {
    * 获取章节详情
    */
   @Post('/info')
-  async info(@Body() body: any) {
+  async getInfo(@Body() body: any) {
     const { id } = body;
     return this.ok(await this.chapterService.info(id));
   }
@@ -33,7 +33,7 @@ export class AdminChapterController extends BaseController {
    * 添加章节
    */
   @Post('/add')
-  async add(@Body() body: any) {
+  async create(@Body() body: any) {
     await this.chapterService.add(body);
     return this.ok();
   }
@@ -42,7 +42,7 @@ export class AdminChapterController extends BaseController {
    * 更新章节
    */
   @Post('/update')
-  async update(@Body() body: any) {
+  async modify(@Body() body: any) {
     await this.chapterService.update(body);
     return this.ok();
   }
@@ -51,7 +51,7 @@ export class AdminChapterController extends BaseController {
    * 删除章节
    */
   @Post('/delete')
-  async delete(@Body() body: any) {
+  async remove(@Body() body: any) {
     const { ids } = body;
     await this.chapterService.delete(ids);
     return this.ok();

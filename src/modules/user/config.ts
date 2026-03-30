@@ -21,6 +21,20 @@ export default () => {
       // 验证码有效期，单位秒
       timeout: 60 * 3,
     },
+    email: {
+      // 邮箱验证码有效期，单位秒
+      timeout: 60 * 5,
+      // 开发环境默认回传预览验证码，便于联调
+      previewCode: true,
+      // SMTP 建议使用 465 直连 TLS
+      host: '',
+      port: 465,
+      secure: true,
+      user: '',
+      pass: '',
+      from: '',
+      subjectPrefix: '数学探险家',
+    },
     // jwt
     jwt: {
       // token 过期时间，单位秒

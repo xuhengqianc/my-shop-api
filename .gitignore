@@ -19,6 +19,8 @@ lock/
 
 # 上传文件
 upload/
+!src/modules/plugin/hooks/upload/
+!src/modules/plugin/hooks/upload/index.ts
 .cool-admin/
 
 # 临时文件
@@ -42,3 +44,7 @@ coverage/
 
 # PM2
 .pm2/
+
+# 本地中转/生成文件
+.pc-staging/
+src/index.ts

@@ -36,6 +36,13 @@ export default {
     fileSize: '200mb',
     whitelist: null,
   },
+  ai: {
+    deepseekApiKey: '',
+    deepseekApiUrl: 'https://api.deepseek.com/v1/chat/completions',
+    deepseekModel: 'deepseek-chat',
+    ocrApiUrl: '',
+    ocrApiKey: '',
+  },
   // 缓存 可切换成其他缓存如：redis http://www.midwayjs.org/docs/extensions/caching
   cacheManager: {
     clients: {

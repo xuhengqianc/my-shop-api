@@ -11,11 +11,17 @@ export class AdminVideoController extends BaseController {
   @Inject()
   videoService: VideoService;
 
+  @Post('/list')
+  async getList(@Body() body: any) {
+    const { chapterId } = body || {};
+    return this.ok(await this.videoService.list(chapterId));
+  }
+
   /**
    * 获取视频详情
    */
   @Post('/info')
-  async info(@Body() body: any) {
+  async getInfo(@Body() body: any) {
     const { id } = body;
     return this.ok(await this.videoService.info(id));
   }
@@ -37,7 +43,7 @@ export class AdminVideoController extends BaseController {
    * 添加视频
    */
   @Post('/add')
-  async add(@Body() body: any) {
+  async create(@Body() body: any) {
     await this.videoService.add(body);
     return this.ok();
   }
@@ -46,7 +52,7 @@ export class AdminVideoController extends BaseController {
    * 更新视频
    */
   @Post('/update')
-  async update(@Body() body: any) {
+  async modify(@Body() body: any) {
     await this.videoService.update(body);
     return this.ok();
   }
@@ -55,7 +61,7 @@ export class AdminVideoController extends BaseController {
    * 删除视频
    */
   @Post('/delete')
-  async delete(@Body() body: any) {
+  async remove(@Body() body: any) {
     const { ids } = body;
     await this.videoService.delete(ids);
     return this.ok();

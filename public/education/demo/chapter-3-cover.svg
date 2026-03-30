@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" fill="none">
+  <rect width="960" height="540" rx="36" fill="#FFF6EE"/>
+  <circle cx="160" cy="414" r="78" fill="#FFD166"/>
+  <circle cx="772" cy="124" r="58" fill="#8BD3DD"/>
+  <rect x="158" y="120" width="646" height="300" rx="34" fill="#FFFFFF"/>
+  <rect x="230" y="180" width="214" height="182" rx="26" fill="#FFE29A"/>
+  <rect x="516" y="180" width="214" height="182" rx="26" fill="#DDEBFF"/>
+  <path d="M260 332L414 206" stroke="#2C4A73" stroke-width="12" stroke-linecap="round"/>
+  <path d="M546 206H700V332H546V206Z" stroke="#2C4A73" stroke-width="12" stroke-linejoin="round"/>
+  <text x="202" y="96" fill="#8F4B00" font-size="42" font-family="Arial, sans-serif" font-weight="700">第 3 章 图形面积与拆分</text>
+  <text x="206" y="452" fill="#7C5A35" font-size="28" font-family="Arial, sans-serif">用拼一拼、切一切的方法，理解面积公式从哪里来</text>
+</svg>
