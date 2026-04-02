@@ -14,7 +14,6 @@ export class UserEmailService {
   @Config('module.user.email')
   emailConfig: {
     timeout?: number;
-    previewCode?: boolean;
     host?: string;
     port?: number;
     secure?: boolean;
@@ -25,7 +24,8 @@ export class UserEmailService {
   };
 
   async sendVerifyCode(email: string, code: string) {
-    const subjectPrefix = this.emailConfig?.subjectPrefix || '数学探险家';
+    const smtpConfig = this.getSmtpConfig();
+    const subjectPrefix = smtpConfig.subjectPrefix || '数学探险家';
     const subject = `${subjectPrefix}验证码`;
     const html = `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -39,10 +39,15 @@ export class UserEmailService {
     `.trim();
 
     if (!this.hasSmtpConfig()) {
-      return {
-        delivered: false,
-        previewCode: this.emailConfig?.previewCode ? code : undefined,
-      };
+      if (this.isLocalDevMode()) {
+        return {
+          delivered: true,
+          localDev: true,
+          previewCode: code,
+        };
+      }
+
+      throw new CoolCommException('邮箱服务未配置，暂无法发送验证码');
     }
 
     await this.sendBySmtp({
@@ -53,18 +58,56 @@ export class UserEmailService {
 
     return {
       delivered: true,
-      previewCode: this.emailConfig?.previewCode ? code : undefined,
     };
   }
 
   private hasSmtpConfig() {
+    const smtpConfig = this.getSmtpConfig();
     return Boolean(
-      this.emailConfig?.host &&
-        this.emailConfig?.port &&
-        this.emailConfig?.user &&
-        this.emailConfig?.pass &&
-        this.emailConfig?.from
+      smtpConfig.host &&
+        smtpConfig.port &&
+        smtpConfig.user &&
+        smtpConfig.pass &&
+        smtpConfig.from
     );
+  }
+
+  private isLocalDevMode() {
+    const envValues = [
+      process.env.NODE_ENV,
+      process.env.MIDWAY_SERVER_ENV,
+      process.env.EGG_SERVER_ENV,
+    ]
+      .filter(Boolean)
+      .map(env => String(env).toLowerCase());
+
+    return envValues.includes('local') || envValues.includes('development');
+  }
+
+  private getSmtpConfig() {
+    const secureValue = process.env.SMTP_SECURE;
+    const secure =
+      typeof secureValue === 'string'
+        ? !['false', '0', 'no', 'off'].includes(secureValue.toLowerCase())
+        : this.emailConfig?.secure !== false;
+
+    return {
+      host: process.env.SMTP_HOST || this.emailConfig?.host || '',
+      port: Number(process.env.SMTP_PORT || this.emailConfig?.port || 465),
+      secure,
+      user: process.env.SMTP_USER || this.emailConfig?.user || '',
+      pass: process.env.SMTP_PASS || this.emailConfig?.pass || '',
+      from:
+        process.env.SMTP_FROM ||
+        this.emailConfig?.from ||
+        process.env.SMTP_USER ||
+        this.emailConfig?.user ||
+        '',
+      subjectPrefix:
+        process.env.SMTP_SUBJECT_PREFIX ||
+        this.emailConfig?.subjectPrefix ||
+        '数学探险家',
+    };
   }
 
   private async sendBySmtp(mail: {
@@ -72,6 +115,7 @@ export class UserEmailService {
     subject: string;
     html: string;
   }) {
+    const smtpConfig = this.getSmtpConfig();
     const socket = await this.createSocket();
 
     try {
@@ -80,19 +124,15 @@ export class UserEmailService {
       await this.command(socket, 'AUTH LOGIN', [334]);
       await this.command(
         socket,
-        Buffer.from(this.emailConfig.user || '').toString('base64'),
+        Buffer.from(smtpConfig.user || '').toString('base64'),
         [334]
       );
       await this.command(
         socket,
-        Buffer.from(this.emailConfig.pass || '').toString('base64'),
+        Buffer.from(smtpConfig.pass || '').toString('base64'),
         [235]
       );
-      await this.command(
-        socket,
-        `MAIL FROM:<${this.emailConfig.from}>`,
-        [250]
-      );
+      await this.command(socket, `MAIL FROM:<${smtpConfig.from}>`, [250]);
       await this.command(socket, `RCPT TO:<${mail.to}>`, [250, 251]);
       await this.command(socket, 'DATA', [354]);
 
@@ -111,10 +151,11 @@ export class UserEmailService {
   }
 
   private buildMessage(mail: { to: string; subject: string; html: string }) {
+    const smtpConfig = this.getSmtpConfig();
     const encodedSubject = `=?UTF-8?B?${Buffer.from(mail.subject).toString(
       'base64'
     )}?=`;
-    const from = this.emailConfig.from || this.emailConfig.user;
+    const from = smtpConfig.from || smtpConfig.user;
     const body = mail.html.replace(/^\./gm, '..');
 
     return [
@@ -130,9 +171,10 @@ export class UserEmailService {
   }
 
   private async createSocket() {
-    const secure = this.emailConfig?.secure !== false;
-    const port = this.emailConfig?.port || 465;
-    const host = this.emailConfig?.host || '';
+    const smtpConfig = this.getSmtpConfig();
+    const secure = smtpConfig.secure !== false;
+    const port = smtpConfig.port || 465;
+    const host = smtpConfig.host || '';
 
     return await new Promise<net.Socket | tls.TLSSocket>((resolve, reject) => {
       const onError = (error: Error) => reject(error);

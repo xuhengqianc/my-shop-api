@@ -280,8 +280,9 @@ export class ExamService extends BaseService {
 
   private checkAnswer(question: EduQuestionEntity, userAnswer: any) {
     const questionType = Number(question.type || 1);
-    const correctAnswer = this.normalizeAnswer(question.answer, questionType);
-    const answer = this.normalizeAnswer(userAnswer, questionType);
+    const options = this.normalizeOptions(question.options);
+    const correctAnswer = this.normalizeAnswer(question.answer, questionType, options);
+    const answer = this.normalizeAnswer(userAnswer, questionType, options);
 
     if (Array.isArray(correctAnswer) || Array.isArray(answer)) {
       return JSON.stringify(correctAnswer) === JSON.stringify(answer);
@@ -290,7 +291,7 @@ export class ExamService extends BaseService {
     return String(correctAnswer) === String(answer);
   }
 
-  private normalizeAnswer(answer: any, questionType: number) {
+  private normalizeAnswer(answer: any, questionType: number, options = []) {
     if (questionType === 2) {
       const values = Array.isArray(answer)
         ? answer
@@ -299,8 +300,13 @@ export class ExamService extends BaseService {
             .map(item => item.trim())
             .filter(Boolean);
       return values
-        .map(item => String(item).trim().toUpperCase())
+        .map(item => this.normalizeObjectiveAnswer(item, options))
+        .filter(Boolean)
         .sort();
+    }
+
+    if (questionType === 1) {
+      return this.normalizeObjectiveAnswer(answer, options);
     }
 
     if (questionType === 3) {
@@ -315,6 +321,27 @@ export class ExamService extends BaseService {
     }
 
     return String(answer || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  private normalizeObjectiveAnswer(answer: any, options: Array<{ label: string; value: string }>) {
+    const normalized = String(answer || '').trim();
+    if (!normalized) {
+      return '';
+    }
+
+    const lowered = normalized.toLowerCase();
+    const matched = options.find(item => {
+      return (
+        item.label.trim().toLowerCase() === lowered ||
+        item.value.trim().toLowerCase() === lowered
+      );
+    });
+
+    if (matched?.label) {
+      return matched.label.trim().toUpperCase();
+    }
+
+    return normalized.replace(/\s+/g, ' ').toLowerCase();
   }
 
   private normalizeOptions(options: any) {

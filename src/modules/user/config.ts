@@ -24,8 +24,6 @@ export default () => {
     email: {
       // 邮箱验证码有效期，单位秒
       timeout: 60 * 5,
-      // 开发环境默认回传预览验证码，便于联调
-      previewCode: true,
       // SMTP 建议使用 465 直连 TLS
       host: '',
       port: 465,

@@ -80,10 +80,16 @@ export class UserLoginService extends BaseService {
     const code = `${Math.floor(100000 + Math.random() * 900000)}`;
     const ttl = (this.emailConfig?.timeout || 300) * 1000;
 
-    await this.midwayCache.set(this.getEmailCodeKey(normalizedEmail, scene), code, ttl);
+    const result = await this.userEmailService.sendVerifyCode(normalizedEmail, code);
+
+    await this.midwayCache.set(
+      this.getEmailCodeKey(normalizedEmail, scene),
+      code,
+      ttl
+    );
     await this.midwayCache.set(lockKey, '1', 60 * 1000);
 
-    return await this.userEmailService.sendVerifyCode(normalizedEmail, code);
+    return result;
   }
 
   async registerByEmail(param: {
