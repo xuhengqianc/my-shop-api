@@ -31,6 +31,13 @@ export class EduChapterEntity extends BaseEntity {
     description?: string;
   }[];
 
+  @Column({ comment: '实验室卡片配置', type: 'json', nullable: true })
+  labItems: {
+    title: string;
+    icon: string;
+    prompt?: string;
+  }[];
+
   @Index()
   @Column({ comment: '状态 0-禁用 1-启用', type: 'tinyint', default: 1 })
   status: number;

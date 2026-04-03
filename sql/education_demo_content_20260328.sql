@@ -1,6 +1,9 @@
 SET @now_varchar = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s');
 SET @asset_host = 'http://127.0.0.1:8001/education/demo';
 SET @demo_video_url = CONCAT(@asset_host, '/math-island-demo.mp4');
+SET @lab_point_icon = 'http://127.0.0.1:8001/education/lab-point.png';
+SET @lab_line_icon = 'http://127.0.0.1:8001/education/lab-line.png';
+SET @lab_surface_icon = 'http://127.0.0.1:8001/education/lab-surface.png';
 
 INSERT INTO `user_info` (
   `createTime`,
@@ -51,6 +54,7 @@ INSERT INTO `edu_chapter` (
   `thumbnail`,
   `thumbnailType`,
   `visuals`,
+  `labItems`,
   `status`
 )
 SELECT
@@ -78,6 +82,11 @@ SELECT
       'description', '复习“先找已知条件，再决定运算方向”的思路。'
     )
   ),
+  JSON_ARRAY(
+    JSON_OBJECT('title', '点', 'icon', @lab_point_icon, 'prompt', ''),
+    JSON_OBJECT('title', '线', 'icon', @lab_line_icon, 'prompt', ''),
+    JSON_OBJECT('title', '面', 'icon', @lab_surface_icon, 'prompt', '')
+  ),
   1
 WHERE NOT EXISTS (
   SELECT 1 FROM `edu_chapter` WHERE `name` = '第1章 数与加减法'
@@ -93,6 +102,7 @@ INSERT INTO `edu_chapter` (
   `thumbnail`,
   `thumbnailType`,
   `visuals`,
+  `labItems`,
   `status`
 )
 SELECT
@@ -120,6 +130,11 @@ SELECT
       'description', '配合视频，理解同分母分数比较。'
     )
   ),
+  JSON_ARRAY(
+    JSON_OBJECT('title', '点', 'icon', @lab_point_icon, 'prompt', ''),
+    JSON_OBJECT('title', '线', 'icon', @lab_line_icon, 'prompt', ''),
+    JSON_OBJECT('title', '面', 'icon', @lab_surface_icon, 'prompt', '')
+  ),
   1
 WHERE NOT EXISTS (
   SELECT 1 FROM `edu_chapter` WHERE `name` = '第2章 分数与比较'
@@ -135,6 +150,7 @@ INSERT INTO `edu_chapter` (
   `thumbnail`,
   `thumbnailType`,
   `visuals`,
+  `labItems`,
   `status`
 )
 SELECT
@@ -161,6 +177,11 @@ SELECT
       'cover', CONCAT(@asset_host, '/chapter-3-cover.svg'),
       'description', '跟着动画一起复盘面积公式的推导过程。'
     )
+  ),
+  JSON_ARRAY(
+    JSON_OBJECT('title', '点', 'icon', @lab_point_icon, 'prompt', ''),
+    JSON_OBJECT('title', '线', 'icon', @lab_line_icon, 'prompt', ''),
+    JSON_OBJECT('title', '面', 'icon', @lab_surface_icon, 'prompt', '')
   ),
   1
 WHERE NOT EXISTS (

@@ -49,6 +49,7 @@ export class ChapterService extends BaseService {
     Object.assign(chapter, {
       ...param,
       visuals: this.normalizeVisuals(param.visuals),
+      labItems: this.normalizeLabItems(param.labItems),
     });
     return await this.eduChapterEntity.save(chapter);
   }
@@ -57,6 +58,7 @@ export class ChapterService extends BaseService {
     await this.eduChapterEntity.update(param.id, {
       ...param,
       visuals: this.normalizeVisuals(param.visuals),
+      labItems: this.normalizeLabItems(param.labItems),
     });
   }
 
@@ -140,6 +142,7 @@ export class ChapterService extends BaseService {
     return {
       ...chapter,
       visuals: this.normalizeVisuals(chapter.visuals),
+      labItems: this.normalizeLabItems(chapter.labItems),
     };
   }
 
@@ -171,5 +174,31 @@ export class ChapterService extends BaseService {
           : '',
       }))
       .filter(item => item.url);
+  }
+
+  private normalizeLabItems(labItems: any) {
+    if (!labItems) {
+      return [];
+    }
+
+    if (typeof labItems === 'string') {
+      try {
+        labItems = JSON.parse(labItems);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    if (!Array.isArray(labItems)) {
+      return [];
+    }
+
+    return labItems
+      .map((item, index) => ({
+        title: String(item?.title || `实验室卡片${index + 1}`).trim(),
+        icon: String(item?.icon || item?.url || '').trim(),
+        prompt: item?.prompt ? String(item.prompt).trim() : '',
+      }))
+      .filter(item => item.title || item.icon || item.prompt);
   }
 }

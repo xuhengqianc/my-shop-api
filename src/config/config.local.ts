@@ -40,4 +40,18 @@ export default {
     // 是否自动导入模块菜单
     initMenu: true,
   } as CoolConfig,
+  ai: {
+    deepseekApiKey: 'sk-4d18d694e867468dad8ae5b25aba0801',
+    deepseekApiUrl: 'https://api.deepseek.com/v1/chat/completions',
+    deepseekModel: 'deepseek-chat',
+  },
+  smtp: {
+    host: 'smtp.163.com',
+    port: 465,
+    secure: true,
+    user: '17637572180@163.com',
+    pass: 'NTXamznsQA8tTkSv',
+    from: '17637572180@163.com',
+    subjectPrefix: '数学探险家',
+  },
 } as MidwayConfig;

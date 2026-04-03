@@ -23,6 +23,17 @@ export class UserEmailService {
     subjectPrefix?: string;
   };
 
+  @Config('smtp')
+  smtpConfig: {
+    host?: string;
+    port?: number;
+    secure?: boolean;
+    user?: string;
+    pass?: string;
+    from?: string;
+    subjectPrefix?: string;
+  };
+
   async sendVerifyCode(email: string, code: string) {
     const smtpConfig = this.getSmtpConfig();
     const subjectPrefix = smtpConfig.subjectPrefix || '数学探险家';
@@ -85,26 +96,32 @@ export class UserEmailService {
   }
 
   private getSmtpConfig() {
+    const appSmtpConfig = this.smtpConfig || {};
     const secureValue = process.env.SMTP_SECURE;
     const secure =
       typeof secureValue === 'string'
         ? !['false', '0', 'no', 'off'].includes(secureValue.toLowerCase())
-        : this.emailConfig?.secure !== false;
+        : appSmtpConfig.secure ?? this.emailConfig?.secure ?? true;
 
     return {
-      host: process.env.SMTP_HOST || this.emailConfig?.host || '',
-      port: Number(process.env.SMTP_PORT || this.emailConfig?.port || 465),
+      host: process.env.SMTP_HOST || appSmtpConfig.host || this.emailConfig?.host || '',
+      port: Number(
+        process.env.SMTP_PORT || appSmtpConfig.port || this.emailConfig?.port || 465
+      ),
       secure,
-      user: process.env.SMTP_USER || this.emailConfig?.user || '',
-      pass: process.env.SMTP_PASS || this.emailConfig?.pass || '',
+      user: process.env.SMTP_USER || appSmtpConfig.user || this.emailConfig?.user || '',
+      pass: process.env.SMTP_PASS || appSmtpConfig.pass || this.emailConfig?.pass || '',
       from:
         process.env.SMTP_FROM ||
+        appSmtpConfig.from ||
         this.emailConfig?.from ||
         process.env.SMTP_USER ||
+        appSmtpConfig.user ||
         this.emailConfig?.user ||
         '',
       subjectPrefix:
         process.env.SMTP_SUBJECT_PREFIX ||
+        appSmtpConfig.subjectPrefix ||
         this.emailConfig?.subjectPrefix ||
         '数学探险家',
     };

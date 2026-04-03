@@ -1,5 +1,5 @@
 import { BaseService } from '@cool-midway/core';
-import { Provide, Config, Inject } from '@midwayjs/core';
+import { Provide, Config, Inject, Logger, ILogger } from '@midwayjs/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository } from 'typeorm';
 import { EduAiPromptEntity } from '../entity/prompt';
@@ -12,6 +12,9 @@ import { CoursewareService } from '../../courseware/service/courseware';
 
 @Provide()
 export class AiService extends BaseService {
+  @Logger()
+  logger: ILogger;
+
   @InjectEntityModel(EduAiPromptEntity)
   promptEntity: Repository<EduAiPromptEntity>;
 
@@ -273,6 +276,7 @@ export class AiService extends BaseService {
       this.aiConfig?.deepseekModel || process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 
     if (!apiKey) {
+      this.logger.warn('[edu-ai] DeepSeek API key missing, using fallback reply');
       return this.buildFallbackReply(type, rawMessage);
     }
 
@@ -296,6 +300,21 @@ export class AiService extends BaseService {
 
       return response.data?.choices?.[0]?.message?.content || this.buildFallbackReply(type, rawMessage);
     } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status || 'unknown';
+        const detail =
+          error.response?.data?.error?.message ||
+          error.response?.data?.message ||
+          error.message;
+        this.logger.error(
+          `[edu-ai] DeepSeek request failed (${status}), using fallback reply: ${detail}`
+        );
+      } else {
+        const detail = error instanceof Error ? error.message : String(error);
+        this.logger.error(
+          `[edu-ai] DeepSeek request failed, using fallback reply: ${detail}`
+        );
+      }
       return this.buildFallbackReply(type, rawMessage);
     }
   }
